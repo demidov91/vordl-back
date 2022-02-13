@@ -1,4 +1,5 @@
 import re
+import shutil
 
 
 FILENAMES = ['nouns', 'adjs', 'verbs']
@@ -183,3 +184,19 @@ def lacin_file_to_cyr(filename):
             for line in in_file:
                 out_file.write(convert_to_cyr(line))
 
+
+def build_popular_and_other(filename: str):
+    shutil.copy(f'data/{filename}.repeat.lac.txt', f'data/{filename}.other.lac.txt')
+
+    with open(f'data/{filename}.different.rate.txt', 'rt') as rate_file:
+        with open(f'data/{filename}.other.lac.txt', 'at') as append_file:
+            with open(f'data/{filename}.popular.lac.txt', 'at') as popular_file:
+                for line in rate_file.readlines():
+                    lac, _, rate = line.split()
+                    if int(rate) > 90:
+                        popular_file.write(lac)
+                        popular_file.write('\n')
+
+                    else:
+                        append_file.write(lac)
+                        append_file.write('\n')
