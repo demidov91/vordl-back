@@ -33,7 +33,7 @@ cyr_to_lac_cons = {
     'ў': 'ŭ',
     'з': 'z',
     'х': 'ch',
-    #"'": 'j',
+    "'": '',
     'ф': 'f',
     'в': 'v',
     'п': 'p',
@@ -55,7 +55,6 @@ def vowel_replace(prefix=''):
 
     def _inner(match):
         orig = match.string[match.start():match.end()]
-        orig = orig.lstrip("'")
         if len(orig) != 1:
             raise ValueError(orig, match.string)
 
@@ -75,7 +74,7 @@ def cons_replace(match):
 
 def convert(word: str) -> str:
     word = re.sub(r'\A[юеёя]', vowel_replace('j'), word)
-    word = re.sub(r"'[юеёяі]", vowel_replace('j'), word)
+    word = re.sub(r"(?<=')[юеёяі]", vowel_replace('j'), word)
     word = re.sub(r"(?<=[юеёяіуэыоаў\-])[юеёя]", vowel_replace('j'), word)
     word = re.sub(r'[юеёя]', vowel_replace('i'), word)
     word = re.sub(r'[іуэыоа]', vowel_replace(), word)
@@ -90,6 +89,3 @@ def convert_file(filename: str):
         with open(f'data/{filename}.lac.txt', mode='wt') as out_file:
             for word in in_file.readlines():
                 out_file.write(convert(word))
-
-
-convert_file('verbs')
