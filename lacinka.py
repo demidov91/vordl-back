@@ -17,6 +17,26 @@ cyr_to_lac_vow = {
     'а': 'a',
 }
 
+
+lac_to_cyr_jot_vow = {
+    'u': 'ю',
+    'e': 'е',
+    'i': 'і',   # I know, but it's more convenient.
+    'o': 'ё',
+    'a': 'я',
+}
+
+
+lac_to_cyr_vow = {
+    'u': 'у',
+    'e': 'э',
+    'i': 'і',
+    'o': 'о',
+    'a': 'а',
+    'y': 'ы',
+}
+
+
 cyr_to_lac_polot_cons = {
     'ц': 'ć',
     'н': 'ń',
@@ -52,6 +72,10 @@ cyr_to_lac_cons = {
 }
 
 
+lac_to_cyr_cons = {v: k for k, v in cyr_to_lac_cons.items() if k != "'"}
+lac_to_cyr_polot_cons = {v: k for k, v in cyr_to_lac_polot_cons.items()}
+
+
 def vowel_replace(prefix=''):
     if prefix not in ['', 'i', 'j']:
         raise ValueError(prefix)
@@ -67,6 +91,18 @@ def vowel_replace(prefix=''):
     return _inner
 
 
+def to_cyr_vowel(jot=False):
+    def _inner(match):
+        mapping = lac_to_cyr_jot_vow if jot else lac_to_cyr_vow
+        vowel = match.string[match.start():match.end()]
+        if len(vowel) == 2:
+            vowel = vowel[1:]
+
+        return mapping[vowel]
+
+    return _inner
+
+
 def polot_cons_replace(match):
     return cyr_to_lac_polot_cons[match.string[match.start():match.end()-1]]
 
@@ -75,7 +111,7 @@ def cons_replace(match):
     return cyr_to_lac_cons[match.string[match.start():match.end()]]
 
 
-def convert(word: str) -> str:
+def convert_to_lac(word: str) -> str:
     word = re.sub(r'\A[юеёя]', vowel_replace('j'), word)
     word = re.sub(r"(?<=')[юеёяі]", vowel_replace('j'), word)
     word = re.sub(r"(?<=[юеёяіуэыоаў\-])[юеёя]", vowel_replace('j'), word)
@@ -87,11 +123,30 @@ def convert(word: str) -> str:
     return word
 
 
+def convert_to_cyr(word: str) -> str:
+    word = re.sub(f"(?<=[{''.join(lac_to_cyr_cons.keys())}])j[aoiue]", lambda m: "'" + to_cyr_vowel(jot=True)(m), word)
+    word = re.sub("[ji][aoue]", to_cyr_vowel(jot=True), word)
+    word = re.sub("[aoueyi]", to_cyr_vowel(jot=False), word)
+    word = re.sub('ch', 'х', word)
+    word = re.sub(
+        f"[{''.join(lac_to_cyr_cons.keys())}]",
+        lambda m: lac_to_cyr_cons[m.string[m.start():m.end()]],
+        word,
+    )
+    word = re.sub(
+        f"[{''.join(lac_to_cyr_polot_cons.keys())}]",
+        lambda m: lac_to_cyr_polot_cons[m.string[m.start():m.end()]] + 'ь',
+        word,
+    )
+
+    return word
+
+
 def convert_file(filename: str):
     with open(f'data/{filename}.txt', mode='rt') as in_file:
         with open(f'data/{filename}.lac.txt', mode='wt') as out_file:
             for word in in_file.readlines():
-                out_file.write(convert(word))
+                out_file.write(convert_to_lac(word))
 
 
 def build_n_words(word_length: int):
@@ -122,5 +177,9 @@ def split_for_n_different(word_length):
                     r_file.write(word)
 
 
-build_n_words(5)
-split_for_n_different(5)
+def lacin_file_to_cyr(filename):
+    with open(f'data/{filename}.lac.txt', 'rt') as in_file:
+        with open(f'data/{filename}.txt', 'wt') as out_file:
+            for line in in_file:
+                out_file.write(convert_to_cyr(line))
+
