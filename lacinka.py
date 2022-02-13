@@ -1,6 +1,9 @@
 import re
 
 
+FILENAMES = ['nouns', 'adjs', 'verbs']
+
+
 cyr_to_lac_vow = {
     'ю': 'u',
     'е': 'e',
@@ -89,3 +92,35 @@ def convert_file(filename: str):
         with open(f'data/{filename}.lac.txt', mode='wt') as out_file:
             for word in in_file.readlines():
                 out_file.write(convert(word))
+
+
+def build_n_words(word_length: int):
+    expected_length = word_length + 1
+    total_words = set()
+    for filename in FILENAMES:
+        with open(f'data/{filename}.lac.txt', 'rt') as in_file:
+            for line in in_file.readlines():
+                if len(line) == expected_length:
+                    total_words.add(line)
+
+    with open(f'data/{word_length}.lac.txt', 'wt') as out_file:
+        for line in total_words:
+            out_file.write(line)
+
+
+def split_for_n_different(word_length):
+    expected_length = word_length + 1
+    with open(f'data/{word_length}.lac.txt', 'rt') as in_file:
+        with open(f'data/{word_length}.different.lac.txt', 'wt') as d_file, open(
+                f'data/{word_length}.repeat.lac.txt', 'wt'
+        ) as r_file:
+            for word in in_file.readlines():
+                if len(set(word)) == expected_length:
+                    d_file.write(word)
+
+                else:
+                    r_file.write(word)
+
+
+build_n_words(5)
+split_for_n_different(5)
