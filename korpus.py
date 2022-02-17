@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 from itertools import chain
+from typing import Union
 
 
 def len_gen(gen):
@@ -83,8 +84,19 @@ class NounFilter(BaseFilter):
     def is_good_word(self, tag: str):
         return len(tag) < 6 or (tag[6] not in ['S', 'U'])
 
+    def is_good_lemma(self, tag: str):
+        return len(tag) < 2 or tag[1] == 'C'
+
     def is_good_form(self, tag: str):
         return (tag[0] == 'N') and (tag[1] == 'P')
+
+
+class ProperNounFilter(BaseFilter):
+    def is_good_lemma(self, tag: str):
+        return False
+
+    def is_good_form(self, tag: str):
+        return tag == 'NS'
 
 
 class AdjectiveFilter(BaseFilter):
@@ -95,7 +107,45 @@ class AdjectiveFilter(BaseFilter):
         return len(tag) > 1 and tag[1] == 'N'
 
 
-def write_to_file(filename: str, word_filter: BaseFilter):
+class NumeralFilter(BaseFilter):
+    def is_good_lemma(self, tag: str):
+        return False
+
+    def is_good_form(self, tag: str):
+        return tag in [
+            'PNP',
+            '0',
+            'MNS',
+            'FNS',
+            'NNS',
+            'MNP',
+            'FNP',
+            'NNP',
+        ]
+
+
+class ParticipleFilter(BaseFilter):
+    def is_good_lemma(self, tag: str):
+        return False
+
+    def is_good_form(self, tag: str):
+        return tag in [
+            'R',
+            'MNS',
+            'FNS',
+            'NNS',
+        ]
+
+
+class FilterCollection:
+    def __init__(self, *filters):
+        self.filters = filters
+
+    def convert(self):
+        return chain(*(x.convert() for x in self.filters))
+
+
+def write_to_file(filename: str, word_filter: Union[BaseFilter, FilterCollection]):
     with open(f'data/{filename}.txt', mode='wt') as lemma_file:
         with open(f'data/{filename}-forms.txt', mode='wt') as form_file:
             for w, is_form in word_filter.convert():
@@ -106,7 +156,7 @@ def write_to_file(filename: str, word_filter: BaseFilter):
 
 def build_nouns():
     nouns = chain(parse('N1.xml'), parse('N2.xml'), parse('N3.xml'))
-    write_to_file('nouns', NounFilter(nouns))
+    write_to_file('nouns', FilterCollection(NounFilter(nouns), ProperNounFilter(parse('NP.xml'))))
 
 
 def build_agjs():
@@ -119,7 +169,14 @@ def build_verbs():
     write_to_file('verbs', BaseFilter(verbs))
 
 
+def build_other():
+    numeral = NumeralFilter(parse('M.xml'))
+    participle = ParticipleFilter(parse('P.xml'))
+    adverbs = BaseFilter(parse('R.xml'))
+    write_to_file('other', FilterCollection(numeral, participle, adverbs))
+
 
 build_nouns()
 build_agjs()
 build_verbs()
+build_other()
