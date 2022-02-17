@@ -34,9 +34,6 @@ class BaseFilter:
     def __init__(self, words):
         self._words = words
 
-    def is_good_word(self, tag: str):
-        return True
-
     def is_good_lemma(self, tag: str):
         return True
 
@@ -76,14 +73,11 @@ class BaseFilter:
             yield form, True
 
     def convert(self):
-        for word in filter(self.is_good_word, self.nowadays_words()):
+        for word in self.nowadays_words():
             yield from self.convert_word(word)
 
 
 class NounFilter(BaseFilter):
-    def is_good_word(self, tag: str):
-        return len(tag) < 6 or (tag[6] not in ['S', 'U'])
-
     def is_good_lemma(self, tag: str):
         return len(tag) < 2 or tag[1] == 'C'
 
@@ -137,6 +131,15 @@ class ParticipleFilter(BaseFilter):
         ]
 
 
+class AdverbFilter(BaseFilter):
+    def to_lemmas(self, word):
+        forms_tags = [''.join([form.attrib['tag'] for form in variant if form.tag == 'Form']) for variant in word]
+        if not all(x.startswith('P') for x in forms_tags):
+            return set()
+
+        return super().to_lemmas(word)
+
+
 class FilterCollection:
     def __init__(self, *filters):
         self.filters = filters
@@ -172,7 +175,7 @@ def build_verbs():
 def build_other():
     numeral = NumeralFilter(parse('M.xml'))
     participle = ParticipleFilter(parse('P.xml'))
-    adverbs = BaseFilter(parse('R.xml'))
+    adverbs = AdverbFilter(parse('R.xml'))
     write_to_file('other', FilterCollection(numeral, participle, adverbs))
 
 

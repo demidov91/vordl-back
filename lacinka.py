@@ -2,7 +2,7 @@ import re
 import shutil
 
 
-FILENAMES = ['nouns', 'adjs', 'verbs']
+words_not_to_ask_5 = {'dybki'}
 
 
 cyr_to_lac_vow = {
@@ -146,31 +146,32 @@ def convert_to_cyr(word: str) -> str:
 def convert_file(filename: str):
     with open(f'data/{filename}.txt', mode='rt') as in_file:
         with open(f'data/{filename}.lac.txt', mode='wt') as out_file:
-            for word in in_file.readlines():
+            for word in in_file:
                 out_file.write(convert_to_lac(word))
 
 
 def build_n_words(word_length: int):
     expected_length = word_length + 1
-    total_words = set()
-    for filename in FILENAMES:
+
+    for filename in ['lemma', 'forms']:
+        total_words = set()
         with open(f'data/{filename}.lac.txt', 'rt') as in_file:
-            for line in in_file.readlines():
+            for line in in_file:
                 if len(line) == expected_length:
                     total_words.add(line)
 
-    with open(f'data/{word_length}.lac.txt', 'wt') as out_file:
-        for line in total_words:
-            out_file.write(line)
+        with open(f'data/{word_length}.{filename}.lac.txt', 'wt') as out_file:
+            for line in total_words:
+                out_file.write(line)
 
 
 def split_for_n_different(word_length):
     expected_length = word_length + 1
-    with open(f'data/{word_length}.lac.txt', 'rt') as in_file:
+    with open(f'data/{word_length}.lemma.lac.txt', 'rt') as in_file:
         with open(f'data/{word_length}.different.lac.txt', 'wt') as d_file, open(
                 f'data/{word_length}.repeat.lac.txt', 'wt'
         ) as r_file:
-            for word in in_file.readlines():
+            for word in in_file:
                 if len(set(word)) == expected_length:
                     d_file.write(word)
 
@@ -185,18 +186,26 @@ def lacin_file_to_cyr(filename):
                 out_file.write(convert_to_cyr(line))
 
 
-def build_popular_and_other(filename: str):
-    shutil.copy(f'data/{filename}.repeat.lac.txt', f'data/{filename}.other.lac.txt')
+def build_popular_and_other(word_len: int):
+    shutil.copy(f'data/{word_len}.repeat.lac.txt', f'data/{word_len}.accept.lac.txt')
 
-    with open(f'data/{filename}.different.rate.txt', 'rt') as rate_file:
-        with open(f'data/{filename}.other.lac.txt', 'at') as append_file:
-            with open(f'data/{filename}.popular.lac.txt', 'at') as popular_file:
-                for line in rate_file.readlines():
+    with open(f'data/{word_len}.different.rate.txt', 'rt') as rate_file:
+        with open(f'data/{word_len}.accept.lac.txt', 'at') as append_file:
+            with open(f'data/{word_len}.ask.lac.txt', 'wt') as popular_file:
+                for line in rate_file:
                     lac, _, rate = line.split()
-                    if int(rate) > 90:
+                    if int(rate) > 90 and lac not in words_not_to_ask_5:
                         popular_file.write(lac)
                         popular_file.write('\n')
 
                     else:
                         append_file.write(lac)
                         append_file.write('\n')
+
+
+convert_file('lemma')
+convert_file('forms')
+build_n_words(5)
+split_for_n_different(5)
+lacin_file_to_cyr('5.different')
+build_popular_and_other(5)
