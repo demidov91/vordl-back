@@ -186,11 +186,11 @@ def lacin_file_to_cyr(filename):
                 out_file.write(convert_to_cyr(line))
 
 
-def build_popular_and_other(word_len: int):
+def build_ask_and_acceptable(word_len: int):
     shutil.copy(f'data/{word_len}.repeat.lac.txt', f'data/{word_len}.accept.lac.txt')
 
-    with open(f'data/{word_len}.different.rate.txt', 'rt') as rate_file:
-        with open(f'data/{word_len}.accept.lac.txt', 'at') as append_file:
+    with open(f'data/{word_len}.accept.lac.txt', 'at') as append_file:
+        with open(f'data/{word_len}.different.rate.txt', 'rt') as rate_file:
             with open(f'data/{word_len}.ask.lac.txt', 'wt') as popular_file:
                 for line in rate_file:
                     lac, _, rate = line.split()
@@ -202,10 +202,14 @@ def build_popular_and_other(word_len: int):
                         append_file.write(lac)
                         append_file.write('\n')
 
+        with open(f'data/{word_len}.forms.lac.txt', 'rt') as forms_file:
+            for line in forms_file:
+                append_file.write(line)
+
 
 convert_file('lemma')
 convert_file('forms')
 build_n_words(5)
 split_for_n_different(5)
 lacin_file_to_cyr('5.different')
-build_popular_and_other(5)
+build_ask_and_acceptable(5)
