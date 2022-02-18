@@ -2,9 +2,6 @@ import re
 import shutil
 
 
-words_not_to_ask_5 = {'dybki'}
-
-
 cyr_to_lac_vow = {
     'ю': 'u',
     'е': 'e',
@@ -188,13 +185,15 @@ def lacin_file_to_cyr(filename):
 
 def build_ask_and_acceptable(word_len: int):
     shutil.copy(f'data/{word_len}.repeat.lac.txt', f'data/{word_len}.accept.lac.txt')
+    with open(f'data/{word_len}.not.ask.lac.txt', 'rt') as bad_file:
+        bad_words = {x.strip() for x in bad_file}
 
     with open(f'data/{word_len}.accept.lac.txt', 'at') as append_file:
         with open(f'data/{word_len}.different.rate.txt', 'rt') as rate_file:
             with open(f'data/{word_len}.ask.lac.txt', 'wt') as popular_file:
                 for line in rate_file:
                     lac, _, rate = line.split()
-                    if int(rate) > 90 and lac not in words_not_to_ask_5:
+                    if int(rate) > 90 and lac not in bad_words:
                         popular_file.write(lac)
                         popular_file.write('\n')
 
@@ -205,6 +204,8 @@ def build_ask_and_acceptable(word_len: int):
         with open(f'data/{word_len}.forms.lac.txt', 'rt') as forms_file:
             for line in forms_file:
                 append_file.write(line)
+
+        append_file.write('uordl\nŭordl\n')
 
 
 convert_file('lemma')
