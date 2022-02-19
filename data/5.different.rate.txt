@@ -2307,7 +2307,7 @@ abmor абмор 0
 podać подаць 5
 indol індол 0
 abjom аб'ём 100
-Аlach Алах 55
+alach алах 55
 dynas дынас 0
 frank франк 29
 ijena іена 0
@@ -3055,7 +3055,7 @@ tryzm трызм 0
 radny радны 6
 aksil аксіл 0
 vabić вабіць 100
-Нojeŭ Ноеў 17
+nojeŭ ноеў 17
 vobad вобад 33
 skrab скраб 1
 dahon дагон 7

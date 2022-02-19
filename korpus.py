@@ -82,7 +82,7 @@ class NounFilter(BaseFilter):
         return len(tag) < 2 or tag[1] == 'C'
 
     def is_good_form(self, tag: str):
-        return (tag[0] == 'N') and (tag[1] == 'P')
+        return (tag[0] == 'N') and (tag[1] in ['P', 'S'])
 
 
 class ProperNounFilter(BaseFilter):

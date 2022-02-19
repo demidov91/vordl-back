@@ -207,6 +207,12 @@ def build_ask_and_acceptable(word_len: int):
 
         append_file.write('uordl\nŭordl\n')
 
+    with open(f'data/{word_len}.accept.lac.txt', 'rt') as f:
+        accepted_words = sorted(set(f.readlines()))
+
+    with open(f'data/{word_len}.accept.lac.txt', 'wt') as f:
+        f.writelines(accepted_words)
+
 
 convert_file('lemma')
 convert_file('forms')
